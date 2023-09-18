@@ -11,8 +11,9 @@
 
 const fs = require("fs"); // file system module to perform file operations
 
-const createDb = (dbName) => {
+const createDb = (dbName, autoIncrement=true) => {
   const emptyDbSchema = { records: [] };
+  if (autoIncrement) emptyDbSchema.nextAutoId = 1;
   fs.writeFile(
     `${dbName}.json`,
     JSON.stringify(emptyDbSchema),
@@ -51,8 +52,43 @@ const dbSchemaExample = {
   ],
 };
 
+const babyMonkey = {
+  animal: "baby monkey",
+  hair: "orange",
+  favoriteFoods: ["bananas", "oranges"],
+  age: 1,
+};
+
+
 //* individual operations */
 // create a new record
+const createRecord = (dbName, newCustomObject) => {
+  const db = readAll(dbName);
+  const data = JSON.parse(db);
+  const newRecord = {
+    id: data.nextAutoId++,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    customObject: newCustomObject
+  };
+  data.records.push(newRecord);
+  console.log(JSON.stringify(data));
+
+  fs.writeFile(
+    dbName,
+    JSON.stringify(data),
+    { encoding: "utf8" },
+    (error) => {
+      if (error) {
+        console.log("An error occured while writing adding record");
+        return console.log(error);
+      } else {
+        console.log("added record!");
+      }
+    }
+  );
+
+}
 // read a record - args: the id of the record, or just get all...
 // const readRecord()
 // update a record
@@ -65,8 +101,7 @@ const readAll = (dbName) => {
   return fs.readFileSync(dbName, { encoding: "utf8" });
 };
 
-const testy = readAll("./test-database.json");
-console.log(testy);
+createRecord("./test-database.json", babyMonkey);
 
 // update many or all records
 // delete many or all records
@@ -81,12 +116,3 @@ console.log(testy);
 //     console.log("JSON file has been saved.");
 // });
 
-const testData = {
-  animal: "baby monkey",
-  hair: "orange",
-  favoriteFoods: ["bananas", "oranges"],
-  age: 1,
-};
-
-const testJSON = JSON.stringify(testData);
-// console.log(testJSON)

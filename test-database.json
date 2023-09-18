@@ -1,1 +1,16 @@
-{"records":[]}
+{
+  "records": [
+    {
+      "id": 1,
+      "createdAt": "2023-09-18T17:53:56.581Z",
+      "updatedAt": "2023-09-18T17:53:56.581Z",
+      "customObject": {
+        "animal": "baby monkey",
+        "hair": "orange",
+        "favoriteFoods": ["bananas", "oranges"],
+        "age": 1
+      }
+    }
+  ],
+  "nextAutoId": 2
+}
