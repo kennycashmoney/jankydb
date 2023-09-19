@@ -4,64 +4,44 @@
  * it needs to be able to complete crud operations on the json file,
  * for the objects contained within it (in progress...)
  *
- * it needs auto-incrementing id
+ * it needs auto-incrementing id (check)
  *
- * it needs createdAt and updatedAt dates set
+ * it needs createdAt and updatedAt dates set (check)
+ * 
+ * maybe i should group nextautoID in a metadata object about the db itself...
+ * to keep it seperated from the 'columns'
+ * 
+ * how can i flatten out the object schema so the 'columns' sit as siblings?
+ * 
+ * should i transform this thing into an object? probably...
+ * i need to think about how to export this thing to be used in other applications
+ * 
+ * i'm using synchronous filesystem functions, but should i create asyncronous versions? 
+ * 
  */
 
 const fs = require("fs"); // file system module to perform file operations
 
-const createDb = (dbName, autoIncrement=true) => {
-  const emptyDbSchema = { records: [] };
-  if (autoIncrement) emptyDbSchema.nextAutoId = 1;
-  fs.writeFile(
-    `${dbName}.json`,
-    JSON.stringify(emptyDbSchema),
-    { encoding: "utf8" },
-    (error) => {
-      if (error) {
-        console.log("An error occured while writing creating db");
-        return console.log(error);
-      } else {
-        console.log("created db!");
-      }
-    }
-  );
+/**
+ * Create a new database
+ * @param {string} dbName - the name of the database
+ */
+const createDb = (dbName) => {
+  const emptyDbSchema = {
+    nextAutoId: 1,
+    records: [],
+  };
+  const newDb = JSON.stringify(emptyDbSchema);
+
+  fs.writeFileSync(dbName, newDb, "utf8");
+  console.log(`Created new database ${dbName}`);
 };
 
-const dbSchemaExample = {
-  records: [
-    {
-      id: 1,
-      createdAt: "2023-09-17T22:56:57.475Z",
-      updatedAt: "2023-09-17T22:56:57.475Z",
-      customObject: {},
-    },
-    {
-      id: 2,
-      createdAt: "2023-09-17T22:56:57.475Z",
-      updatedAt: "2023-09-17T22:56:57.475Z",
-      customObject: {},
-    },
-    {
-      id: 3,
-      createdAt: "2023-09-17T22:56:57.475Z",
-      updatedAt: "2023-09-17T22:56:57.475Z",
-      customObject: {},
-    },
-  ],
-};
-
-const babyMonkey = {
-  animal: "baby monkey",
-  hair: "orange",
-  favoriteFoods: ["bananas", "oranges"],
-  age: 1,
-};
-
-
-//* individual operations */
-// create a new record
+/**
+ * Creates a new record in a database
+ * @param {string} dbName - the name of the database to insert to
+ * @param {object} newCustomObject - the custom object to insert into the database
+ */
 const createRecord = (dbName, newCustomObject) => {
   const db = readAll(dbName);
   const data = JSON.parse(db);
@@ -69,30 +49,39 @@ const createRecord = (dbName, newCustomObject) => {
     id: data.nextAutoId++,
     createdAt: new Date(),
     updatedAt: new Date(),
-    customObject: newCustomObject
+    customObject: newCustomObject,
   };
   data.records.push(newRecord);
-  console.log(JSON.stringify(data));
+  const insertRecord = JSON.stringify(data);
 
-  fs.writeFile(
-    dbName,
-    JSON.stringify(data),
-    { encoding: "utf8" },
-    (error) => {
-      if (error) {
-        console.log("An error occured while writing adding record");
-        return console.log(error);
-      } else {
-        console.log("added record!");
-      }
-    }
-  );
+  fs.writeFileSync(dbName, insertRecord, "utf8");
+  console.log(`New record created: ${JSON.stringify(newRecord)}`);
+};
 
-}
-// read a record - args: the id of the record, or just get all...
+
+
+// TODO: read a record - args: the id of the record, or just get all...
 // const readRecord()
 // update a record
 // delete a record
+
+/**
+ * Destroys a record in the database
+ * @param {string} dbName - the name of the database to insert to
+ * @param {*} recordId - the id of the record to be destroyed
+ */
+const destroyRecord = (dbName, recordId) => {
+  const db = readAll(dbName);
+  const data = JSON.parse(db);
+
+  const updatedRecords = data.records.filter((record) => record.id !== recordId);
+  data.records = updatedRecords;
+
+  const destroyRecord = JSON.stringify(data);
+  fs.writeFileSync(dbName, destroyRecord, 'utf8');
+
+  console.log(`record ${recordId} destroyed`);
+}
 
 //* bulk operations */
 // create many new records
@@ -100,19 +89,41 @@ const createRecord = (dbName, newCustomObject) => {
 const readAll = (dbName) => {
   return fs.readFileSync(dbName, { encoding: "utf8" });
 };
-
-createRecord("./test-database.json", babyMonkey);
-
 // update many or all records
 // delete many or all records
 
-// createDb("test-database");
+/**
+ * TESTING
+ */
+const babyMonkey = {
+  animal: "baby monkey",
+  hair: "orange",
+  favoriteFoods: ["bananas", "oranges"],
+  age: 1,
+};
 
-// fs.writeFile("output.json", jsonContent, 'utf8', function (err) {
-//     if (err) {
-//
-//     }
+const babyCow = {
+  animal: "baby cow",
+  hair: "spots",
+  favoriteFoods: ["grass", "cud"],
+  age: 1.5,
+};
 
-//     console.log("JSON file has been saved.");
-// });
+const babyParsnip = {
+  skin: 'juicy',
+  plant: 'root',
+  quote: 'i am groot!',
+}
 
+const myNewObject = {
+  myString: 'dookie',
+  myNumber: 22,
+  myBoolean: true,
+};
+
+
+// createDb("test-database.json");
+// createRecord("./test-database.json", babyMonkey);
+// createRecord("./test-database.json", babyCow);
+// createRecord("./test-database.json", babyParsnip);
+destroyRecord('./test-database.json', 2);
