@@ -21,23 +21,51 @@ const createDb = (dbName) => {
 };
 
 /**
+ * Reads the database
+ * @param {string} dbName - the name of the database to read
+ * @returns {object} JSON object with all of the db file's contents
+ */
+const readDb = (dbName) => {
+  return dbJSON = JSON.parse(fs.readFileSync(dbName, { encoding: "utf8" }));
+};
+
+/**
+ * Gets all the records from the database
+ * @param {string} dbName - the name of the database to read from
+ * @returns {array} - all the records in the database
+ */
+const selectStar = (dbName) => {
+  const { records } = readDb(dbName);
+  return records;
+};
+
+/**
+ * Gets a record by id
+ * @param {string} dbName - the name of the database to select from
+ * @param {number} id - the id of the record to get
+ */
+const getRecordById = (dbName, id) => {
+  const { records } = readDb(dbName);
+  return records.filter((record) => record.id === id)[0];
+}
+
+/**
  * Creates a new record in a database
  * @param {string} dbName - the name of the database to insert to
  * @param {object} newCustomObject - the custom object to insert into the database
  */
-const createRecord = (dbName, newCustomObject) => {
-  const data = readAll(dbName);
+const insertRecord = (dbName, newCustomObject) => {
+  const data = readDb(dbName);
   const newRecord = {
     id: data.nextAutoId++,
     createdAt: new Date(),
     updatedAt: new Date(),
-    // customObject: newCustomObject,
     ...newCustomObject,
   };
   data.records.push(newRecord);
-  const insertRecord = JSON.stringify(data);
+  const updatedDB = JSON.stringify(data);
 
-  fs.writeFileSync(dbName, insertRecord, "utf8");
+  fs.writeFileSync(dbName, updatedDB, "utf8");
   console.log(`New record created: ${JSON.stringify(newRecord)}`);
 };
 
@@ -47,7 +75,7 @@ const createRecord = (dbName, newCustomObject) => {
  * @param {*} recordId - the id of the record to be destroyed
  */
 const destroyRecord = (dbName, recordId) => {
-  const data = readAll(dbName);
+  const data = readDb(dbName);
 
   const updatedRecords = data.records.filter((record) => record.id !== recordId);
   data.records = updatedRecords;
@@ -58,20 +86,12 @@ const destroyRecord = (dbName, recordId) => {
   console.log(`record ${recordId} destroyed`);
 }
 
-/**
- * 
- * @param {string} dbName - the name of the database to read from
- * @returns {object} - the full database JSON
- */
-const readAll = (dbName) => {
-  return JSON.parse(fs.readFileSync(dbName, { encoding: "utf8" }));
-};
-
 
 // CommonJS export
 module.exports = {
   createDb,
-  createRecord,
+  insertRecord,
   destroyRecord,
-  readAll,
+  selectStar,
+  getRecordById,
 }
