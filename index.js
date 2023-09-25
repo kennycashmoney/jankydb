@@ -1,25 +1,8 @@
 /**
- * jankydb needs to create a json file (check)
- *
- * it needs to be able to complete crud operations on the json file,
- * for the objects contained within it (in progress...)
- *
- * it needs auto-incrementing id (check)
- *
- * it needs createdAt and updatedAt dates set (check)
- * 
- * maybe i should group nextautoID in a metadata object about the db itself...
- * to keep it seperated from the 'columns'
- * 
- * how can i flatten out the object schema so the 'columns' sit as siblings?
- * 
- * should i transform this thing into an object? probably...
- * i need to think about how to export this thing to be used in other applications
- * 
- * i'm using synchronous filesystem functions, but should i create asyncronous versions? 
- * 
+ * jankydb is a json file "database"
+ * it's main purpose is to use as a dev tool for prototyping Node applications
+ * without having to worry about doing too much work to set up a database or ORM
  */
-
 const fs = require("fs"); // file system module to perform file operations
 
 /**
@@ -49,7 +32,8 @@ const createRecord = (dbName, newCustomObject) => {
     id: data.nextAutoId++,
     createdAt: new Date(),
     updatedAt: new Date(),
-    customObject: newCustomObject,
+    // customObject: newCustomObject,
+    ...newCustomObject,
   };
   data.records.push(newRecord);
   const insertRecord = JSON.stringify(data);
@@ -92,38 +76,27 @@ const readAll = (dbName) => {
 // update many or all records
 // delete many or all records
 
-/**
- * TESTING
- */
-const babyMonkey = {
-  animal: "baby monkey",
-  hair: "orange",
-  favoriteFoods: ["bananas", "oranges"],
-  age: 1,
-};
 
-const babyCow = {
-  animal: "baby cow",
-  hair: "spots",
-  favoriteFoods: ["grass", "cud"],
-  age: 1.5,
-};
-
-const babyParsnip = {
-  skin: 'juicy',
-  plant: 'root',
-  quote: 'i am groot!',
+// CommonJS export
+module.exports = {
+  createDb,
+  createRecord,
+  destroyRecord,
+  readAll,
 }
 
-const myNewObject = {
-  myString: 'dookie',
-  myNumber: 22,
-  myBoolean: true,
-};
 
-
-// createDb("test-database.json");
-// createRecord("./test-database.json", babyMonkey);
-// createRecord("./test-database.json", babyCow);
-// createRecord("./test-database.json", babyParsnip);
-destroyRecord('./test-database.json', 2);
+/**
+ * TODOS:
+ * maybe i should group nextautoID in an object about the db itself...
+ * to keep it seperated from the 'columns'
+ * 
+ * how can i flatten out the object schema so the 'columns' sit as siblings?
+ * 
+ * should i transform this thing into an object? probably...
+ * i need to think about how to export this thing to be used in other applications
+ * so - do i make this a CommonJS module or an ES Module? - 
+ * --if i use typescript, i think it will want ES Module...
+ * 
+ * i'm using synchronous filesystem functions, but should i create asyncronous versions? 
+ */
